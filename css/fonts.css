@@ -1,0 +1,55 @@
+@font-face {
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto-VariableFont_wdth,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    /* Диапазон доступных значений веса */
+    font-stretch: 75% 100%;
+    /* Диапазон ширины, если поддерживается */
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto-Italic-VariableFont_wdth\,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    /* Диапазон доступных значений веса */
+    font-stretch: 75% 100%;
+    /* Диапазон ширины, если поддерживается */
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Inter';
+    src: url('../fonts/Inter-VariableFont_opsz\,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    /* Диапазон доступных значений веса */
+    font-stretch: 75% 100%;
+    /* Диапазон ширины, если поддерживается */
+    font-style: normal;
+}
+@font-face {
+    font-family: 'Inter';
+    src: url('../fonts/Inter-Italic-VariableFont_opsz\,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    /* Диапазон доступных значений веса */
+    font-stretch: 75% 100%;
+    /* Диапазон ширины, если поддерживается */
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Roboto Slab';
+    src: url('../fonts/RobotoSlab-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    /* Диапазон доступных значений веса */
+    font-stretch: 75% 100%;
+    /* Диапазон ширины, если поддерживается */
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Mont';
+    src: url('../fonts/Fontfabric - Mont Heavy DEMO.otf') format('truetype');
+    font-weight: 100 900;
+    /* Диапазон доступных значений веса */
+    font-stretch: 75% 100%;
+    /* Диапазон ширины, если поддерживается */
+    font-style: italic;
+}
