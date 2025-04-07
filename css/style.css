@@ -39,7 +39,7 @@
 /* Main section *Start* */
 
 .main-section {
-    min-height: calc(100vh - 100px);
+    min-height: calc(100vh);
 
     display: flex;
     align-items: center;

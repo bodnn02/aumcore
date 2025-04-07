@@ -10,12 +10,10 @@ function animateNumbers() {
         const finalValue = parseInt(match[1], 10);
         const suffix = match[2];
         
-        // Сохраняем оригинальное значение как атрибут, если еще не сохранено
         if (!el.getAttribute("data-value")) {
             el.setAttribute("data-value", text);
         }
 
-        // Обнуляем начальное значение
         el.innerText = "0" + suffix;
 
         gsap.to({
@@ -33,32 +31,59 @@ function animateNumbers() {
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Глобальные флаги для отслеживания состояния анимации
+let mainAnimationComplete = false;
 let numbersAnimated = false;
 let linesAnimated = false;
+let scrollLocked = false;
+let scrollDirection = null;
 
-// 1. "Залипание" main-section при скролле с обратной анимацией
-ScrollTrigger.create({
-    trigger: ".main-section",
-    start: "top top",
-    end: "+=300",
-    pin: true,
-    scrub: true,
-    onLeave: () => startProsAnimation(),
-    onEnterBack: () => reverseProsAnimation(),
-    id: "main-pin"
+let originalScrollY = 0;
+let targetSection = null;
+
+function toggleScrollLock(lock) {
+    if (lock && !scrollLocked) {
+        originalScrollY = window.scrollY;
+        
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${originalScrollY}px`;
+        document.body.style.width = '100%';
+        document.body.style.overflowY = 'scroll';
+        
+        scrollLocked = true;
+    } else if (!lock && scrollLocked) {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflowY = '';
+        
+        scrollLocked = false;
+    }
+}
+
+function jumpToSection(selector) {
+    const section = document.querySelector(selector);
+    if (!section) return;
+    
+    const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
+    
+    toggleScrollLock(false);
+    
+    window.scrollTo({
+        top: sectionTop,
+        behavior: 'auto'
+    });
+}
+
+const forwardTimeline = gsap.timeline({
+    paused: true,
+    onComplete: () => {
+        mainAnimationComplete = true;
+        jumpToSection('.pros-section');
+        setTimeout(startProsAnimation, 100);
+    }
 });
 
-// 2. Анимация исчезновения заголовка и перемещения img с обратной анимацией
-gsap.timeline({
-    scrollTrigger: {
-        trigger: ".main-section",
-        start: "top top",
-        end: "+=300",
-        scrub: true,
-        id: "main-animation" 
-    }
-})
+forwardTimeline
     .to(".main-section__h1", {
         opacity: 0,
         y: -50,
@@ -80,7 +105,128 @@ gsap.timeline({
         ease: "power2.inOut"
     });
 
-// 3. Плавная анимация ромба и иконки
+const backwardTimeline = gsap.timeline({
+    paused: true,
+    onComplete: () => {
+        mainAnimationComplete = false;
+        jumpToSection('.main-section');
+        reverseProsAnimation();
+    }
+});
+
+backwardTimeline
+    .fromTo("#main-section__img", {
+        scale: 0.3,
+        x: () => {
+            const img = document.getElementById("main-section__img");
+            const logo = document.querySelector(".header__logo-img");
+            return logo.getBoundingClientRect().left - img.getBoundingClientRect().left;
+        },
+        y: () => {
+            const img = document.getElementById("main-section__img");
+            const logo = document.querySelector(".header__logo-img");
+            return logo.getBoundingClientRect().top - img.getBoundingClientRect().top;
+        }
+    }, {
+        scale: 1,
+        x: 0,
+        y: 0,
+        duration: 1,
+        ease: "power2.inOut"
+    })
+    .fromTo(".main-section__h1", {
+        opacity: 0,
+        y: -50
+    }, {
+        opacity: 1,
+        y: 0,
+        duration: 1
+    });
+
+function setupScrollTriggers() {
+    const mainSectionMarker = ScrollTrigger.create({
+        trigger: ".main-section",
+        start: "top top",
+        end: "bottom bottom",
+        onLeave: () => {
+            if (!mainAnimationComplete) {
+                scrollDirection = 'down';
+                toggleScrollLock(true);
+                forwardTimeline.play();
+            }
+        },
+    });
+
+    const prosSectionMarker = ScrollTrigger.create({
+        trigger: ".pros-section",
+        start: "top bottom",
+        end: "bottom top",
+        onEnter: () => {
+            if (mainAnimationComplete) {
+                startProsAnimation();
+            }
+        },
+        onLeaveBack: () => {
+            if (mainAnimationComplete) {
+                scrollDirection = 'up';
+                toggleScrollLock(false);
+                backwardTimeline.play();
+            }
+        }
+    });
+
+    document.addEventListener('wheel', handleWheelEvent, { passive: false });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('keydown', handleKeyDown, { passive: false });
+}
+
+function handleWheelEvent(e) {
+    const mainSection = document.querySelector('.main-section');
+    const prosSection = document.querySelector('.pros-section');
+    if (!mainSection || !prosSection) return;
+    
+    const mainRect = mainSection.getBoundingClientRect();
+    const prosRect = prosSection.getBoundingClientRect();
+    
+    if (mainRect.top <= 0 && mainRect.bottom > 0 && !mainAnimationComplete && e.deltaY > 0) {
+        e.preventDefault();
+        scrollDirection = 'down';
+        toggleScrollLock(true);
+        forwardTimeline.play();
+    }
+}
+
+function handleTouchMove(e) {
+    if (scrollLocked) {
+        e.preventDefault();
+    }
+}
+
+function handleKeyDown(e) {
+    const mainSection = document.querySelector('.main-section');
+    const prosSection = document.querySelector('.pros-section');
+    if (!mainSection || !prosSection) return;
+    
+    const mainRect = mainSection.getBoundingClientRect();
+    const prosRect = prosSection.getBoundingClientRect();
+    
+    if ((e.key === 'ArrowDown' || e.key === 'PageDown') && 
+        mainRect.top <= 0 && mainRect.bottom > 0 && !mainAnimationComplete) {
+        e.preventDefault();
+        scrollDirection = 'down';
+        toggleScrollLock(true);
+        forwardTimeline.play();
+    }
+    
+    if ((e.key === 'ArrowUp' || e.key === 'PageUp') && 
+        prosRect.top <= 0 && prosRect.bottom > window.innerHeight && mainAnimationComplete) {
+        e.preventDefault();
+        scrollDirection = 'up';
+        toggleScrollLock(true);
+        backwardTimeline.play();
+    }
+}
+
 function startProsAnimation() {
     if (numbersAnimated) return;
 
@@ -95,7 +241,6 @@ function startProsAnimation() {
 
     img.style.opacity = "0";
 
-    // Удаляем существующий placeholder, если он есть
     const existingDiamond = icon.querySelector(".diamond-placeholder");
     if (existingDiamond) existingDiamond.remove();
 
@@ -103,13 +248,12 @@ function startProsAnimation() {
     diamond.classList.add("diamond-placeholder");
     icon.appendChild(diamond);
 
-    // Убедимся, что начальные стили установлены
+    // Ensure initial styles are set
     Object.assign(diamond.style, {
         transform: "scale(0.1) rotate(0deg)",
         opacity: "0"
     });
 
-    // Анимация: квадрат становится ромбом
     gsap.to(diamond, {
         scale: 1,
         rotation: 45,
@@ -117,7 +261,6 @@ function startProsAnimation() {
         duration: 1.0,
         ease: "power3.out",
         onComplete: () => {
-            // Расширяем и исчезаем
             gsap.to(diamond, {
                 scale: 1.3,
                 opacity: 0,
@@ -134,13 +277,10 @@ function startProsAnimation() {
     });
 }
 
-
-// Новая функция для обратной анимации
 function reverseProsAnimation() {
     numbersAnimated = false;
     linesAnimated = false;
     
-    // Сбрасываем видимость чисел к начальным значениям
     const numbers = document.querySelectorAll(".pros-list__item-number");
     numbers.forEach((el) => {
         const text = el.getAttribute("data-value") || el.innerText.trim();
@@ -151,7 +291,6 @@ function reverseProsAnimation() {
         }
     });
 
-    // Удаляем все созданные линии
     const lineContainers = document.querySelectorAll(".line-container");
     lineContainers.forEach(container => {
         gsap.to(container, {
@@ -161,14 +300,12 @@ function reverseProsAnimation() {
         });
     });
 
-    // Возвращаем первую иконку к исходному состоянию
     const firstItem = document.querySelector(".pros-list__item");
     if (firstItem) {
         const icon = firstItem.querySelector(".pros-list__item-icon");
         const img = icon.querySelector("img");
         
         if (img) {
-            // Плавно возвращаем иконку
             gsap.to(img, {
                 opacity: 0,
                 duration: 0.5
@@ -177,12 +314,10 @@ function reverseProsAnimation() {
     }
 }
 
-// 4. Отрисовка линий от ромба к ромбу с возможностью обратной анимации
 function animateDiamondLinesWithScroll() {
     const items = document.querySelectorAll(".pros-list__item");
-    const direction = ["right", "left"]; // Чередование
+    const direction = ["right", "left"];
 
-    // Удаляем старые линии
     document.querySelectorAll(".line-container").forEach(el => el.remove());
 
     items.forEach((item, index) => {
@@ -205,12 +340,11 @@ function animateDiamondLinesWithScroll() {
         lineContainer.appendChild(vertLine);
         currentIcon.appendChild(lineContainer);
 
-        // Создаем timeline с scrub-анимацией
         gsap.timeline({
             scrollTrigger: {
                 trigger: item,
                 start: "top center",
-                end: "+=1300", // Длина скролла, за которую анимация происходит
+                end: "+=1300",
                 scrub: true
             }
         })
@@ -227,33 +361,35 @@ function animateDiamondLinesWithScroll() {
             height: "380px",
             ease: "power2.out",
             duration: 1
-        }, "<+0.8"); // запускаем вертикальную с задержкой после горизонтальной
+        }, "<+0.8");
     });
 }
 
+function resetMainSection() {
+    gsap.set(".main-section__h1", { opacity: 1, y: 0 });
+    gsap.set("#main-section__img", { scale: 1, x: 0, y: 0 });
+}
 
-// Создаем отдельный триггер для запуска анимации чисел
-ScrollTrigger.create({
-    trigger: ".pros-list",
-    start: "top center",
-    onEnter: () => {
-        if (!numbersAnimated) {
-            numbersAnimated = true;
-            animateNumbers();
+function resetProsSection() {
+    const numbers = document.querySelectorAll(".pros-list__item-number");
+    numbers.forEach((el) => {
+        const text = el.getAttribute("data-value") || el.innerText.trim();
+        const match = text.match(/^(\d+)(%?)$/);
+        if (match) {
+            const suffix = match[2];
+            el.innerText = "0" + suffix;
         }
-    },
-    onLeaveBack: () => {
-        numbersAnimated = false;
-        // Сбрасываем числа на ноль при прокрутке назад
-        const numbers = document.querySelectorAll(".pros-list__item-number");
-        numbers.forEach((el) => {
-            const text = el.getAttribute("data-value") || el.innerText.trim();
-            const match = text.match(/^(\d+)(%?)$/);
-            if (match) {
-                const suffix = match[2];
-                el.innerText = "0" + suffix;
-            }
-        });
-    },
-    id: "numbers-trigger"
+    });
+    
+    const lineContainers = document.querySelectorAll(".line-container");
+    lineContainers.forEach(container => container.remove());
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    resetMainSection();
+    resetProsSection();
+    
+    setupScrollTriggers();
+    
+    gsap.registerPlugin(ScrollToPlugin);
 });
