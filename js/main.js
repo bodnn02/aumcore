@@ -9,7 +9,7 @@ function animateNumbers() {
 
         const finalValue = parseInt(match[1], 10);
         const suffix = match[2];
-        
+
         if (!el.getAttribute("data-value")) {
             el.setAttribute("data-value", text);
         }
@@ -22,7 +22,7 @@ function animateNumbers() {
             val: finalValue,
             duration: 2,
             ease: "power2.out",
-            onUpdate: function() {
+            onUpdate: function () {
                 el.innerText = Math.round(this.targets()[0].val) + suffix;
             }
         });
@@ -43,19 +43,19 @@ let targetSection = null;
 function toggleScrollLock(lock) {
     if (lock && !scrollLocked) {
         originalScrollY = window.scrollY;
-        
+
         document.body.style.position = 'fixed';
         document.body.style.top = `-${originalScrollY}px`;
         document.body.style.width = '100%';
         document.body.style.overflowY = 'scroll';
-        
+
         scrollLocked = true;
     } else if (!lock && scrollLocked) {
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.width = '';
         document.body.style.overflowY = '';
-        
+
         scrollLocked = false;
     }
 }
@@ -63,11 +63,11 @@ function toggleScrollLock(lock) {
 function jumpToSection(selector) {
     const section = document.querySelector(selector);
     if (!section) return;
-    
+
     const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
-    
+
     toggleScrollLock(false);
-    
+
     window.scrollTo({
         top: sectionTop,
         behavior: 'auto'
@@ -184,10 +184,10 @@ function handleWheelEvent(e) {
     const mainSection = document.querySelector('.main-section');
     const prosSection = document.querySelector('.pros-section');
     if (!mainSection || !prosSection) return;
-    
+
     const mainRect = mainSection.getBoundingClientRect();
     const prosRect = prosSection.getBoundingClientRect();
-    
+
     if (mainRect.top <= 0 && mainRect.bottom > 0 && !mainAnimationComplete && e.deltaY > 0) {
         e.preventDefault();
         scrollDirection = 'down';
@@ -206,19 +206,19 @@ function handleKeyDown(e) {
     const mainSection = document.querySelector('.main-section');
     const prosSection = document.querySelector('.pros-section');
     if (!mainSection || !prosSection) return;
-    
+
     const mainRect = mainSection.getBoundingClientRect();
     const prosRect = prosSection.getBoundingClientRect();
-    
-    if ((e.key === 'ArrowDown' || e.key === 'PageDown') && 
+
+    if ((e.key === 'ArrowDown' || e.key === 'PageDown') &&
         mainRect.top <= 0 && mainRect.bottom > 0 && !mainAnimationComplete) {
         e.preventDefault();
         scrollDirection = 'down';
         toggleScrollLock(true);
         forwardTimeline.play();
     }
-    
-    if ((e.key === 'ArrowUp' || e.key === 'PageUp') && 
+
+    if ((e.key === 'ArrowUp' || e.key === 'PageUp') &&
         prosRect.top <= 0 && prosRect.bottom > window.innerHeight && mainAnimationComplete) {
         e.preventDefault();
         scrollDirection = 'up';
@@ -248,7 +248,6 @@ function startProsAnimation() {
     diamond.classList.add("diamond-placeholder");
     icon.appendChild(diamond);
 
-    // Ensure initial styles are set
     Object.assign(diamond.style, {
         transform: "scale(0.1) rotate(0deg)",
         opacity: "0"
@@ -280,7 +279,7 @@ function startProsAnimation() {
 function reverseProsAnimation() {
     numbersAnimated = false;
     linesAnimated = false;
-    
+
     const numbers = document.querySelectorAll(".pros-list__item-number");
     numbers.forEach((el) => {
         const text = el.getAttribute("data-value") || el.innerText.trim();
@@ -304,7 +303,7 @@ function reverseProsAnimation() {
     if (firstItem) {
         const icon = firstItem.querySelector(".pros-list__item-icon");
         const img = icon.querySelector("img");
-        
+
         if (img) {
             gsap.to(img, {
                 opacity: 0,
@@ -321,11 +320,11 @@ function animateDiamondLinesWithScroll() {
     document.querySelectorAll(".line-container").forEach(el => el.remove());
 
     items.forEach((item, index) => {
-        const nextItem = items[index + 1];
-        if (!nextItem) return;
-
         const currentIcon = item.querySelector(".pros-list__item-icon");
         if (!currentIcon) return;
+
+        const currentTextWrapper = item.querySelector(".pros-list__item-wrapper");
+        if (!currentTextWrapper) return;
 
         const lineContainer = document.createElement("div");
         lineContainer.classList.add("line-container");
@@ -340,18 +339,47 @@ function animateDiamondLinesWithScroll() {
         lineContainer.appendChild(vertLine);
         currentIcon.appendChild(lineContainer);
 
-        gsap.timeline({
+        if (index > 0) {
+            gsap.set(currentIcon, {
+                y: 600
+            });
+
+            gsap.set(currentTextWrapper, {
+                y: 600
+            });
+        }
+
+        const tl_lines = gsap.timeline({
             scrollTrigger: {
                 trigger: item,
-                start: "top center",
-                end: "+=1300",
+                start: "top 10%",  
+                end: "bottom 50%",     
                 scrub: true
             }
-        })
-        .fromTo(horizLine, {
+        });
+
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: item,
+                start: "top 58%", 
+                end: "top 48%",      
+                scrub: true
+            }
+        });
+
+        const tl_text = gsap.timeline({
+            scrollTrigger: {
+                trigger: item,
+                start: "top 50%", 
+                end: "top 40%",      
+                scrub: true
+            }
+        });
+
+        tl_lines.fromTo(horizLine, {
             width: 0
         }, {
-            width: "604px",
+            width: "585px",
             ease: "power2.out",
             duration: 1
         })
@@ -361,7 +389,21 @@ function animateDiamondLinesWithScroll() {
             height: "380px",
             ease: "power2.out",
             duration: 1
-        }, "<+0.8");
+        }, "<+1");
+
+        if (index > 0) {
+            tl.to(currentIcon, {
+                y: 0,
+                ease: "power3.out",
+                duration: 1.5
+            }, ">");
+
+            tl_text.to(currentTextWrapper, {
+                y: 0,
+                ease: "power3.out",
+                duration: 1.5
+            }, ">");
+        }
     });
 }
 
@@ -380,7 +422,7 @@ function resetProsSection() {
             el.innerText = "0" + suffix;
         }
     });
-    
+
     const lineContainers = document.querySelectorAll(".line-container");
     lineContainers.forEach(container => container.remove());
 }
@@ -388,8 +430,8 @@ function resetProsSection() {
 document.addEventListener('DOMContentLoaded', () => {
     resetMainSection();
     resetProsSection();
-    
+
     setupScrollTriggers();
-    
+
     gsap.registerPlugin(ScrollToPlugin);
 });
