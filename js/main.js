@@ -255,15 +255,16 @@ function startProsAnimation() {
 
     gsap.to(diamond, {
         scale: 1,
-        rotation: 45,
+        rotation: 0,
         opacity: 1,
-        duration: 1.0,
+        duration: 1,
         ease: "power3.out",
         onComplete: () => {
             gsap.to(diamond, {
-                scale: 1.3,
+                scale: 1,
+                rotation: 45,
                 opacity: 0,
-                duration: 0.5,
+                duration: 1.5,
                 onComplete: () => {
                     diamond.remove();
                     img.style.opacity = "1";
@@ -317,7 +318,11 @@ function animateDiamondLinesWithScroll() {
     const items = document.querySelectorAll(".pros-list__item");
     const direction = ["right", "left"];
 
+    // Удаляем существующие контейнеры линий
     document.querySelectorAll(".line-container").forEach(el => el.remove());
+
+    // Массив для хранения всех timeline анимаций
+    const animations = [];
 
     items.forEach((item, index) => {
         const currentIcon = item.querySelector(".pros-list__item-icon");
@@ -339,70 +344,109 @@ function animateDiamondLinesWithScroll() {
         lineContainer.appendChild(vertLine);
         currentIcon.appendChild(lineContainer);
 
+        // Устанавливаем начальное положение для всех элементов кроме первого
         if (index > 0) {
-            gsap.set(currentIcon, {
-                y: 600
-            });
-
-            gsap.set(currentTextWrapper, {
-                y: 600
-            });
+            gsap.set(currentIcon, { y: 600 });
+            gsap.set(currentTextWrapper, { y: 600 });
         }
 
+        // Создаем таймлайн для анимации линий
         const tl_lines = gsap.timeline({
             scrollTrigger: {
                 trigger: item,
-                start: "top 10%",  
-                end: "bottom 50%",     
-                scrub: true
+                start: "top 10%",
+                end: "+=1200",
+                scrub: true,
+                // Добавляем pin для первого элемента, если линия рисуется к следующему
+                onEnter: () => {
+                    if (index === 0 && items.length > 1) {
+                        gsap.to(items[0], { position: 'sticky', top: '10%', zIndex: 10, duration: 0.1 });
+                    }
+                },
+                onLeaveBack: () => {
+                    if (index === 0 && items.length > 1) {
+                        gsap.to(items[0], { position: 'relative', top: '0', zIndex: 1, duration: 0.1 });
+                    }
+                }
             }
         });
 
+        // Анимируем горизонтальную и вертикальную линии последовательно
+        tl_lines.fromTo(horizLine,
+            { width: 0 },
+            { width: "585px", ease: "power2.out", duration: 1 }
+        )
+            .fromTo(vertLine,
+                { height: 0 },
+                {
+                    height: "380px", ease: "power2.out", duration: 1,
+                    // Снимаем фиксацию первого элемента после рисования вертикальной линии
+                    onComplete: () => {
+                        if (index === 0 && items.length > 1) {
+                            gsap.to(items[0], { position: 'relative', top: '0', zIndex: 1, duration: 0.1 });
+                        }
+                    }
+                },
+                "<+1"
+            );
+
+        // Сохраняем timeline для возможной синхронизации
+        animations.push(tl_lines);
+
+        // Анимация для иконки
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: item,
-                start: "top 58%", 
-                end: "top 48%",      
+                start: "top 10%",
+                end: "+=700",
                 scrub: true
             }
         });
 
+        // Анимация для текста
         const tl_text = gsap.timeline({
             scrollTrigger: {
                 trigger: item,
-                start: "top 50%", 
-                end: "top 40%",      
+                start: "top 50%",
+                end: "top 40%",
                 scrub: true
             }
         });
 
-        tl_lines.fromTo(horizLine, {
-            width: 0
-        }, {
-            width: "585px",
-            ease: "power2.out",
-            duration: 1
-        })
-        .fromTo(vertLine, {
-            height: 0
-        }, {
-            height: "380px",
-            ease: "power2.out",
-            duration: 1
-        }, "<+1");
-
+        // Анимируем появление иконки и текста для элементов после первого
         if (index > 0) {
-            tl.to(currentIcon, {
-                y: 0,
-                ease: "power3.out",
-                duration: 1.5
-            }, ">");
+            // Связываем анимацию с предыдущей линией
+            if (index === 1) {
+                tl.to(currentIcon, {
+                    y: 0,
+                    ease: "power3.out",
+                    duration: 1.5
+                }, ">")
+                    .add(() => {
+                        // Проверка окончания анимации линии перед анимацией иконки
+                        if (!animations[index - 1].isActive()) {
+                            return;
+                        }
+                    });
 
-            tl_text.to(currentTextWrapper, {
-                y: 0,
-                ease: "power3.out",
-                duration: 1.5
-            }, ">");
+                tl_text.to(currentTextWrapper, {
+                    y: 0,
+                    ease: "power3.out",
+                    duration: 1.5
+                }, ">");
+            } else {
+                tl.to(currentIcon, {
+                    y: 0,
+                    ease: "power3.out",
+                    duration: 1.5
+                }, ">");
+
+                tl_text.to(currentTextWrapper, {
+                    y: 0,
+                    ease: "power3.out",
+                    duration: 1.5
+                }, ">");
+            }
         }
     });
 }
