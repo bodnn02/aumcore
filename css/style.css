@@ -5,6 +5,12 @@ body {
 /* Header *Start* */
 
 .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+
     padding: 24px 0;
 
     background-color: #fff;
@@ -17,12 +23,20 @@ body {
     justify-content: space-between;
 }
 
+.header__logo .main-section__img {
+    margin-right: 12px;
+    width: 100px;
+}
+
 .header__logo {
-    width: 154px;
+    display: flex;
+    align-items: center;
 }
 
 .header__logo-img {
-    width: 100%;
+    width: 154px;
+
+    transition: linear 0.2s;
 }
 
 .header-btn {

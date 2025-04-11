@@ -66,7 +66,7 @@ function jumpToSection(selector) {
 
     const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
 
-    toggleScrollLock(false);
+    // toggleScrollLock(false);
 
     window.scrollTo({
         top: sectionTop,
@@ -80,6 +80,25 @@ const forwardTimeline = gsap.timeline({
         mainAnimationComplete = true;
         jumpToSection('.pros-section');
         setTimeout(startProsAnimation, 100);
+
+        const img = document.querySelector(".main-section__img");
+        const logoImg = document.querySelector(".header__logo-img");
+        const logoWrapper = document.querySelector(".header__logo");
+
+        if (img && logoImg && logoWrapper) {
+            const imgClone = img.cloneNode(true);
+            imgClone.src = "img/tarelka-krut-1-static.png";
+
+            imgClone.style.translate = null;
+            imgClone.style.rotate = null;
+            imgClone.style.transform = null;
+
+            // 
+
+            logoWrapper.insertBefore(imgClone, logoImg);
+
+            img.style.display = "none";
+        }
     }
 });
 
@@ -151,7 +170,7 @@ function setupScrollTriggers() {
         onLeave: () => {
             if (!mainAnimationComplete) {
                 scrollDirection = 'down';
-                toggleScrollLock(true);
+                // toggleScrollLock(true);
                 forwardTimeline.play();
             }
         },
@@ -169,7 +188,7 @@ function setupScrollTriggers() {
         onLeaveBack: () => {
             if (mainAnimationComplete) {
                 scrollDirection = 'up';
-                toggleScrollLock(false);
+                // toggleScrollLock(false);
                 backwardTimeline.play();
             }
         }
@@ -191,7 +210,7 @@ function handleWheelEvent(e) {
     if (mainRect.top <= 0 && mainRect.bottom > 0 && !mainAnimationComplete && e.deltaY > 0) {
         e.preventDefault();
         scrollDirection = 'down';
-        toggleScrollLock(true);
+        // toggleScrollLock(true);
         forwardTimeline.play();
     }
 }
@@ -214,7 +233,7 @@ function handleKeyDown(e) {
         mainRect.top <= 0 && mainRect.bottom > 0 && !mainAnimationComplete) {
         e.preventDefault();
         scrollDirection = 'down';
-        toggleScrollLock(true);
+        // toggleScrollLock(true);
         forwardTimeline.play();
     }
 
@@ -222,7 +241,7 @@ function handleKeyDown(e) {
         prosRect.top <= 0 && prosRect.bottom > window.innerHeight && mainAnimationComplete) {
         e.preventDefault();
         scrollDirection = 'up';
-        toggleScrollLock(true);
+        // toggleScrollLock(true);
         backwardTimeline.play();
     }
 }
@@ -357,15 +376,33 @@ function animateDiamondLinesWithScroll() {
                 start: "top 10%",
                 end: "+=1200",
                 scrub: true,
-                // Добавляем pin для первого элемента, если линия рисуется к следующему
                 onEnter: () => {
                     if (index === 0 && items.length > 1) {
-                        gsap.to(items[0], { position: 'sticky', top: '10%', zIndex: 10, duration: 0.1 });
+                        gsap.to(items[0], {
+                            position: 'sticky',
+                            top: '10%',
+                            zIndex: 10,
+                            duration: 0.1,
+                            paddingBottom: "1500px"
+                        });
+                    }
+                },
+                onLeave: () => {
+                    // Когда прокрутка доходит до конца области scrollTrigger
+                    if (index === 0 && items.length > 1) {
+                        gsap.to(items[0], {
+                            paddingBottom: "0px",
+                            duration: 0.1
+                        });
                     }
                 },
                 onLeaveBack: () => {
+                    // Когда возвращаемся вверх — снова ставим padding
                     if (index === 0 && items.length > 1) {
-                        gsap.to(items[0], { position: 'relative', top: '0', zIndex: 1, duration: 0.1 });
+                        gsap.to(items[0], {
+                            paddingBottom: "1500px",
+                            duration: 0.1
+                        });
                     }
                 }
             }
