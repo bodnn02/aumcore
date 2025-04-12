@@ -1,3 +1,5 @@
+gsap.registerPlugin(ScrollTrigger);
+
 function animateNumbers() {
     const numbers = document.querySelectorAll(".pros-list__item-number");
 
@@ -14,241 +16,113 @@ function animateNumbers() {
             el.setAttribute("data-value", text);
         }
 
-        el.innerText = "0" + suffix;
-
-        gsap.to({
-            val: 0
-        }, {
-            val: finalValue,
-            duration: 2,
-            ease: "power2.out",
-            onUpdate: function () {
-                el.innerText = Math.round(this.targets()[0].val) + suffix;
+        ScrollTrigger.create({
+            trigger: el,
+            start: "top 80%",
+            end: "bottom 20%",
+            onEnter: () => {
+                gsap.to({ val: 0 }, {
+                    val: finalValue,
+                    duration: 3,
+                    ease: "power2.out",
+                    onUpdate: function () {
+                        el.innerText = Math.round(this.targets()[0].val) + suffix;
+                    }
+                });
+            },
+            onLeaveBack: () => {
+                el.innerText = "0" + suffix;
             }
         });
     });
 }
 
-gsap.registerPlugin(ScrollTrigger);
+document.addEventListener("DOMContentLoaded", animateNumbers);
 
-let mainAnimationComplete = false;
-let numbersAnimated = false;
-let linesAnimated = false;
-let scrollLocked = false;
-let scrollDirection = null;
+window.addEventListener("DOMContentLoaded", () => {
+    const img = document.querySelector(".main-section__img");
+    const h1 = document.querySelector(".main-section__h1");
+    const logo = document.querySelector(".header__logo");
+    const mainSection = document.querySelector(".main-section");
+    const prosSection = document.querySelector(".pros-section");
 
-let originalScrollY = 0;
-let targetSection = null;
+    const imgClone = img.cloneNode(true);
+    imgClone.style.position = "absolute";
+    imgClone.style.top = 0;
+    imgClone.style.left = 0;
+    imgClone.style.width = "100%";
+    imgClone.style.height = "100%";
+    imgClone.style.objectFit = "contain";
+    imgClone.style.opacity = 0;
+    imgClone.style.pointerEvents = "none";
+    imgClone.style.display = "none";
+    logo.insertBefore(imgClone, logo.firstChild);
 
-function toggleScrollLock(lock) {
-    if (lock && !scrollLocked) {
-        originalScrollY = window.scrollY;
+    const timeline = gsap.timeline({
+        scrollTrigger: {
+            trigger: ".main-section",
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+            pin: ".pros-section",
+            onLeave: () => {
+                prosSection.scrollIntoView({
+                    block: "start",
+                    behavior: "smooth"
+                });
+                document.body.style.overflow = "hidden";
 
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${originalScrollY}px`;
-        document.body.style.width = '100%';
-        document.body.style.overflowY = 'scroll';
+                startProsAnimation();
 
-        scrollLocked = true;
-    } else if (!lock && scrollLocked) {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.overflowY = '';
+                setTimeout(() => {
+                    document.body.style.overflow = "auto";
+                }, 2000);
+            },
+            onEnter: () => {
+                mainSection.scrollIntoView({
+                    block: "start",
+                    behavior: "smooth"
+                });
 
-        scrollLocked = false;
-    }
-}
-
-function jumpToSection(selector) {
-    const section = document.querySelector(selector);
-    if (!section) return;
-
-    const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
-
-    // toggleScrollLock(false);
-
-    window.scrollTo({
-        top: sectionTop,
-        behavior: 'auto'
-    });
-}
-
-const forwardTimeline = gsap.timeline({
-    paused: true,
-    onComplete: () => {
-        mainAnimationComplete = true;
-        jumpToSection('.pros-section');
-        setTimeout(startProsAnimation, 100);
-
-        const img = document.querySelector(".main-section__img");
-        const logoImg = document.querySelector(".header__logo-img");
-        const logoWrapper = document.querySelector(".header__logo");
-
-        if (img && logoImg && logoWrapper) {
-            const imgClone = img.cloneNode(true);
-            imgClone.src = "img/tarelka-krut-1-static.png";
-
-            imgClone.style.translate = null;
-            imgClone.style.rotate = null;
-            imgClone.style.transform = null;
-
-            // 
-
-            logoWrapper.insertBefore(imgClone, logoImg);
-
-            img.style.display = "none";
+                setTimeout(() => {
+                    document.body.style.overflow = "auto";
+                }, 2000);
+            }
         }
-    }
-});
+    });
 
-forwardTimeline
-    .to(".main-section__h1", {
+    timeline.to(h1, {
         opacity: 0,
         y: -50,
-        duration: 1
-    })
-    .to("#main-section__img", {
-        scale: 0.3,
-        x: () => {
-            const img = document.getElementById("main-section__img");
-            const logo = document.querySelector(".header__logo-img");
-            return logo.getBoundingClientRect().left - img.getBoundingClientRect().left;
-        },
-        y: () => {
-            const img = document.getElementById("main-section__img");
-            const logo = document.querySelector(".header__logo-img");
-            return logo.getBoundingClientRect().top - img.getBoundingClientRect().top;
-        },
-        duration: 1,
-        ease: "power2.inOut"
-    });
+        duration: 0.5
+    }, 0);
 
-const backwardTimeline = gsap.timeline({
-    paused: true,
-    onComplete: () => {
-        mainAnimationComplete = false;
-        jumpToSection('.main-section');
-        reverseProsAnimation();
-    }
+    timeline.to(img, {
+        x: () => logo.getBoundingClientRect().left - img.getBoundingClientRect().left,
+        y: () => logo.getBoundingClientRect().top - img.getBoundingClientRect().top,
+        scaleX: () => logo.offsetWidth / img.offsetWidth,
+        scaleY: () => logo.offsetHeight / img.offsetHeight,
+        transformOrigin: "top left",
+        duration: 1.5
+    }, 0);
+
+    timeline.to(imgClone, {
+        opacity: 1,
+        duration: 0.2,
+        onStart: () => {
+            imgClone.style.display = "block";
+        },
+        onComplete: () => {
+            imgClone.removeAttribute("style");
+        }
+    }, 0.9);
+
+    timeline.set(img, {
+        opacity: 0
+    }, 0.9);
 });
 
-backwardTimeline
-    .fromTo("#main-section__img", {
-        scale: 0.3,
-        x: () => {
-            const img = document.getElementById("main-section__img");
-            const logo = document.querySelector(".header__logo-img");
-            return logo.getBoundingClientRect().left - img.getBoundingClientRect().left;
-        },
-        y: () => {
-            const img = document.getElementById("main-section__img");
-            const logo = document.querySelector(".header__logo-img");
-            return logo.getBoundingClientRect().top - img.getBoundingClientRect().top;
-        }
-    }, {
-        scale: 1,
-        x: 0,
-        y: 0,
-        duration: 1,
-        ease: "power2.inOut"
-    })
-    .fromTo(".main-section__h1", {
-        opacity: 0,
-        y: -50
-    }, {
-        opacity: 1,
-        y: 0,
-        duration: 1
-    });
-
-function setupScrollTriggers() {
-    const mainSectionMarker = ScrollTrigger.create({
-        trigger: ".main-section",
-        start: "top top",
-        end: "bottom bottom",
-        onLeave: () => {
-            if (!mainAnimationComplete) {
-                scrollDirection = 'down';
-                // toggleScrollLock(true);
-                forwardTimeline.play();
-            }
-        },
-    });
-
-    const prosSectionMarker = ScrollTrigger.create({
-        trigger: ".pros-section",
-        start: "top bottom",
-        end: "bottom top",
-        onEnter: () => {
-            if (mainAnimationComplete) {
-                startProsAnimation();
-            }
-        },
-        onLeaveBack: () => {
-            if (mainAnimationComplete) {
-                scrollDirection = 'up';
-                // toggleScrollLock(false);
-                backwardTimeline.play();
-            }
-        }
-    });
-
-    document.addEventListener('wheel', handleWheelEvent, { passive: false });
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('keydown', handleKeyDown, { passive: false });
-}
-
-function handleWheelEvent(e) {
-    const mainSection = document.querySelector('.main-section');
-    const prosSection = document.querySelector('.pros-section');
-    if (!mainSection || !prosSection) return;
-
-    const mainRect = mainSection.getBoundingClientRect();
-    const prosRect = prosSection.getBoundingClientRect();
-
-    if (mainRect.top <= 0 && mainRect.bottom > 0 && !mainAnimationComplete && e.deltaY > 0) {
-        e.preventDefault();
-        scrollDirection = 'down';
-        // toggleScrollLock(true);
-        forwardTimeline.play();
-    }
-}
-
-function handleTouchMove(e) {
-    if (scrollLocked) {
-        e.preventDefault();
-    }
-}
-
-function handleKeyDown(e) {
-    const mainSection = document.querySelector('.main-section');
-    const prosSection = document.querySelector('.pros-section');
-    if (!mainSection || !prosSection) return;
-
-    const mainRect = mainSection.getBoundingClientRect();
-    const prosRect = prosSection.getBoundingClientRect();
-
-    if ((e.key === 'ArrowDown' || e.key === 'PageDown') &&
-        mainRect.top <= 0 && mainRect.bottom > 0 && !mainAnimationComplete) {
-        e.preventDefault();
-        scrollDirection = 'down';
-        // toggleScrollLock(true);
-        forwardTimeline.play();
-    }
-
-    if ((e.key === 'ArrowUp' || e.key === 'PageUp') &&
-        prosRect.top <= 0 && prosRect.bottom > window.innerHeight && mainAnimationComplete) {
-        e.preventDefault();
-        scrollDirection = 'up';
-        // toggleScrollLock(true);
-        backwardTimeline.play();
-    }
-}
-
 function startProsAnimation() {
-    if (numbersAnimated) return;
-
     const firstItem = document.querySelector(".pros-list__item");
     if (!firstItem) return;
 
@@ -287,50 +161,11 @@ function startProsAnimation() {
                 onComplete: () => {
                     diamond.remove();
                     img.style.opacity = "1";
-                    numbersAnimated = true;
-                    animateNumbers();
                     animateDiamondLinesWithScroll();
                 }
             });
         }
     });
-}
-
-function reverseProsAnimation() {
-    numbersAnimated = false;
-    linesAnimated = false;
-
-    const numbers = document.querySelectorAll(".pros-list__item-number");
-    numbers.forEach((el) => {
-        const text = el.getAttribute("data-value") || el.innerText.trim();
-        const match = text.match(/^(\d+)(%?)$/);
-        if (match) {
-            const suffix = match[2];
-            el.innerText = "0" + suffix;
-        }
-    });
-
-    const lineContainers = document.querySelectorAll(".line-container");
-    lineContainers.forEach(container => {
-        gsap.to(container, {
-            opacity: 0,
-            duration: 0.5,
-            onComplete: () => container.remove()
-        });
-    });
-
-    const firstItem = document.querySelector(".pros-list__item");
-    if (firstItem) {
-        const icon = firstItem.querySelector(".pros-list__item-icon");
-        const img = icon.querySelector("img");
-
-        if (img) {
-            gsap.to(img, {
-                opacity: 0,
-                duration: 0.5
-            });
-        }
-    }
 }
 
 function animateDiamondLinesWithScroll() {
@@ -349,6 +184,9 @@ function animateDiamondLinesWithScroll() {
 
         const currentTextWrapper = item.querySelector(".pros-list__item-wrapper");
         if (!currentTextWrapper) return;
+
+        const nextItem = items[index + 1];
+        if (!nextItem) return;
 
         const lineContainer = document.createElement("div");
         lineContainer.classList.add("line-container");
@@ -373,38 +211,9 @@ function animateDiamondLinesWithScroll() {
         const tl_lines = gsap.timeline({
             scrollTrigger: {
                 trigger: item,
-                start: "top 10%",
-                end: "+=1200",
-                scrub: true,
-                onEnter: () => {
-                    if (index === 0 && items.length > 1) {
-                        gsap.to(items[0], {
-                            position: 'sticky',
-                            top: '10%',
-                            zIndex: 10,
-                            duration: 0.1,
-                            paddingBottom: "1500px"
-                        });
-                    }
-                },
-                onLeave: () => {
-                    // Когда прокрутка доходит до конца области scrollTrigger
-                    if (index === 0 && items.length > 1) {
-                        gsap.to(items[0], {
-                            paddingBottom: "0px",
-                            duration: 0.1
-                        });
-                    }
-                },
-                onLeaveBack: () => {
-                    // Когда возвращаемся вверх — снова ставим padding
-                    if (index === 0 && items.length > 1) {
-                        gsap.to(items[0], {
-                            paddingBottom: "1500px",
-                            duration: 0.1
-                        });
-                    }
-                }
+                start: "top 45%",
+                end: "+=700",
+                scrub: 5,
             }
         });
 
@@ -417,12 +226,6 @@ function animateDiamondLinesWithScroll() {
                 { height: 0 },
                 {
                     height: "380px", ease: "power2.out", duration: 1,
-                    // Снимаем фиксацию первого элемента после рисования вертикальной линии
-                    onComplete: () => {
-                        if (index === 0 && items.length > 1) {
-                            gsap.to(items[0], { position: 'relative', top: '0', zIndex: 1, duration: 0.1 });
-                        }
-                    }
                 },
                 "<+1"
             );
@@ -434,7 +237,7 @@ function animateDiamondLinesWithScroll() {
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: item,
-                start: "top 10%",
+                start: "top 60%",
                 end: "+=700",
                 scrub: true
             }
@@ -487,32 +290,3 @@ function animateDiamondLinesWithScroll() {
         }
     });
 }
-
-function resetMainSection() {
-    gsap.set(".main-section__h1", { opacity: 1, y: 0 });
-    gsap.set("#main-section__img", { scale: 1, x: 0, y: 0 });
-}
-
-function resetProsSection() {
-    const numbers = document.querySelectorAll(".pros-list__item-number");
-    numbers.forEach((el) => {
-        const text = el.getAttribute("data-value") || el.innerText.trim();
-        const match = text.match(/^(\d+)(%?)$/);
-        if (match) {
-            const suffix = match[2];
-            el.innerText = "0" + suffix;
-        }
-    });
-
-    const lineContainers = document.querySelectorAll(".line-container");
-    lineContainers.forEach(container => container.remove());
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    resetMainSection();
-    resetProsSection();
-
-    setupScrollTriggers();
-
-    gsap.registerPlugin(ScrollToPlugin);
-});
