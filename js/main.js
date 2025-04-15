@@ -1,3 +1,4 @@
+
 gsap.registerPlugin(ScrollTrigger);
 
 function animateNumbers() {
@@ -40,68 +41,86 @@ function animateNumbers() {
 document.addEventListener("DOMContentLoaded", animateNumbers);
 
 window.addEventListener("DOMContentLoaded", () => {
-    const img = document.querySelector(".main-section__img");
-    const h1 = document.querySelector(".main-section__h1");
-    const logo = document.querySelector(".header__logo");
-    const mainSection = document.querySelector(".main-section");
-    const prosSection = document.querySelector(".pros-section");
+    const selectors = {
+        img: ".main-section__img",
+        h1: ".main-section__h1",
+        logo: ".header__logo",
+        main: ".main-section",
+        pros: ".pros-section"
+    };
 
-    const imgClone = img.cloneNode(true);
-    imgClone.style.position = "absolute";
-    imgClone.style.top = 0;
-    imgClone.style.left = 0;
-    imgClone.style.width = "100%";
-    imgClone.style.height = "100%";
-    imgClone.style.objectFit = "contain";
-    imgClone.style.opacity = 0;
-    imgClone.style.pointerEvents = "none";
-    imgClone.style.display = "none";
-    logo.insertBefore(imgClone, logo.firstChild);
+    const elements = {
+        img: document.querySelector(selectors.img),
+        h1: document.querySelector(selectors.h1),
+        logo: document.querySelector(selectors.logo),
+        mainSection: document.querySelector(selectors.main),
+        prosSection: document.querySelector(selectors.pros)
+    };
+
+    const imgClone = elements.img.cloneNode(true);
+    Object.assign(imgClone.style, {
+        position: "absolute",
+        objectFit: "contain",
+        opacity: 0,
+        pointerEvents: "none",
+        display: "none"
+    });
+    elements.logo.insertBefore(imgClone, elements.logo.firstChild);
+
+    const resetStyles = el => {
+        ["position", "top", "left", "width", "zIndex"].forEach(prop => {
+            el.style[prop] = "";
+        });
+    };
+
+    const animateProsFixation = () => {
+        elements.prosSection.scrollIntoView({ block: "start" });
+
+        Object.assign(elements.prosSection.style, {
+            position: "fixed",
+            top: "0",
+            left: "0",
+            width: "100%",
+            zIndex: "999"
+        });
+
+        setTimeout(() => {
+            resetStyles(elements.prosSection);
+            elements.prosSection.scrollIntoView({ block: "start" });
+        }, 1500);
+    };
 
     const timeline = gsap.timeline({
         scrollTrigger: {
-            trigger: ".main-section",
+            trigger: selectors.main,
             start: "top top",
-            end: "bottom top",
+            end: "+=1000",
+            pin: true,
             scrub: true,
-            pin: ".pros-section",
-            onLeave: () => {
-                prosSection.scrollIntoView({
-                    block: "start",
-                    behavior: "smooth"
-                });
-                document.body.style.overflow = "hidden";
-
-                startProsAnimation();
-
-                setTimeout(() => {
-                    document.body.style.overflow = "auto";
-                }, 2000);
-            },
             onEnter: () => {
-                mainSection.scrollIntoView({
-                    block: "start",
-                    behavior: "smooth"
-                });
-
-                setTimeout(() => {
-                    document.body.style.overflow = "auto";
-                }, 2000);
+                elements.mainSection.scrollIntoView({ block: "start", behavior: "smooth" });
+            },
+            onLeave: animateProsFixation,
+            onUpdate: (self) => {
+                if (self.progress >= 0.3 && !self.trigger._animationStarted) {
+                    self.trigger._animationStarted = true;
+                    startProsAnimation?.();
+                }
             }
         }
     });
 
-    timeline.to(h1, {
+    timeline.to(elements.h1, {
         opacity: 0,
         y: -50,
         duration: 0.5
     }, 0);
 
-    timeline.to(img, {
-        x: () => logo.getBoundingClientRect().left - img.getBoundingClientRect().left,
-        y: () => logo.getBoundingClientRect().top - img.getBoundingClientRect().top,
-        scaleX: () => logo.offsetWidth / img.offsetWidth,
-        scaleY: () => logo.offsetHeight / img.offsetHeight,
+    timeline.to(elements.img, {
+        x: () => elements.logo.getBoundingClientRect().left - elements.img.getBoundingClientRect().left,
+        y: () => elements.logo.getBoundingClientRect().top - elements.img.getBoundingClientRect().top,
+        scaleX: () => elements.logo.offsetWidth / elements.img.offsetWidth,
+        scaleY: () => elements.logo.offsetHeight / elements.img.offsetHeight,
         transformOrigin: "top left",
         duration: 1.5
     }, 0);
@@ -109,18 +128,13 @@ window.addEventListener("DOMContentLoaded", () => {
     timeline.to(imgClone, {
         opacity: 1,
         duration: 0.2,
-        onStart: () => {
-            imgClone.style.display = "block";
-        },
-        onComplete: () => {
-            imgClone.removeAttribute("style");
-        }
+        onStart: () => { imgClone.style.display = "block"; },
+        onComplete: () => { imgClone.removeAttribute("style"); }
     }, 0.9);
 
-    timeline.set(img, {
-        opacity: 0
-    }, 0.9);
+    timeline.set(elements.img, { opacity: 0 }, 0.9);
 });
+
 
 function startProsAnimation() {
     const firstItem = document.querySelector(".pros-list__item");
@@ -151,6 +165,7 @@ function startProsAnimation() {
         rotation: 0,
         opacity: 1,
         duration: 1,
+        pin: true,
         ease: "power3.out",
         onComplete: () => {
             gsap.to(diamond, {
@@ -172,10 +187,8 @@ function animateDiamondLinesWithScroll() {
     const items = document.querySelectorAll(".pros-list__item");
     const direction = ["right", "left"];
 
-    // Удаляем существующие контейнеры линий
     document.querySelectorAll(".line-container").forEach(el => el.remove());
 
-    // Массив для хранения всех timeline анимаций
     const animations = [];
 
     items.forEach((item, index) => {
@@ -201,49 +214,38 @@ function animateDiamondLinesWithScroll() {
         lineContainer.appendChild(vertLine);
         currentIcon.appendChild(lineContainer);
 
-        // Устанавливаем начальное положение для всех элементов кроме первого
-        if (index > 0) {
-            gsap.set(currentIcon, { y: 600 });
-            gsap.set(currentTextWrapper, { y: 600 });
-        }
-
-        // Создаем таймлайн для анимации линий
         const tl_lines = gsap.timeline({
             scrollTrigger: {
                 trigger: item,
-                start: "top 45%",
-                end: "+=700",
-                scrub: 5,
+                start: "center center",
+                end: "+=1000",
+                scrub: true,
+                pin: true,
+                pinSpacing: true
             }
         });
 
-        // Анимируем горизонтальную и вертикальную линии последовательно
         tl_lines.fromTo(horizLine,
             { width: 0 },
-            { width: "585px", ease: "power2.out", duration: 1 }
-        )
-            .fromTo(vertLine,
-                { height: 0 },
-                {
-                    height: "380px", ease: "power2.out", duration: 1,
-                },
-                "<+1"
-            );
+            { width: "585px", ease: "none" }
+        ).fromTo(vertLine,
+            { height: 0 },
+            { height: "380px", ease: "none" },
+            ">"
+        );
 
-        // Сохраняем timeline для возможной синхронизации
+
         animations.push(tl_lines);
 
-        // Анимация для иконки
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: item,
                 start: "top 60%",
-                end: "+=700",
-                scrub: true
+                end: "bottom top",
+                scrub: true,
             }
         });
 
-        // Анимация для текста
         const tl_text = gsap.timeline({
             scrollTrigger: {
                 trigger: item,
@@ -253,36 +255,29 @@ function animateDiamondLinesWithScroll() {
             }
         });
 
-        // Анимируем появление иконки и текста для элементов после первого
         if (index > 0) {
-            // Связываем анимацию с предыдущей линией
             if (index === 1) {
                 tl.to(currentIcon, {
-                    y: 0,
                     ease: "power3.out",
                     duration: 1.5
                 }, ">")
                     .add(() => {
-                        // Проверка окончания анимации линии перед анимацией иконки
                         if (!animations[index - 1].isActive()) {
                             return;
                         }
                     });
 
                 tl_text.to(currentTextWrapper, {
-                    y: 0,
                     ease: "power3.out",
                     duration: 1.5
                 }, ">");
             } else {
                 tl.to(currentIcon, {
-                    y: 0,
                     ease: "power3.out",
                     duration: 1.5
                 }, ">");
 
                 tl_text.to(currentTextWrapper, {
-                    y: 0,
                     ease: "power3.out",
                     duration: 1.5
                 }, ">");

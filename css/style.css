@@ -107,6 +107,22 @@ body {
     z-index: 12;
 }
 
+.main-section__diamond  {
+    position: relative;
+
+    height: 546px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.main-section__diamond  > img {
+    display: none;
+    height: 100%;
+}
+
 /* Main section *Stop* */
 
 /* Pros section *Start* */
@@ -126,8 +142,7 @@ body {
     flex-direction: row-reverse;
     align-items: center;
 }
-
-.pros-list__item:nth-child(2n), .pros-list .pin-spacer:nth-child(2n) {
+.pros-list__item:nth-child(2n), .pros-list .pin-spacer:nth-child(2n) .pros-list__item {
     flex-direction: row;
 }
 
@@ -234,7 +249,6 @@ body {
 
     transition: linear .2s;
 }
-
 .pros-list__item-btn:hover::after {
     width: 17px;
 }
@@ -280,7 +294,7 @@ body {
 .line-vertical {
     position: absolute;
     top: 100%;
-    left: -73%;
+    left: calc(-50% - 103px);
     width: 2px;
     /* Dotted line */
     background-image: linear-gradient(to top, #000 50%, transparent 50%);
@@ -288,8 +302,8 @@ body {
     background-repeat: repeat-y;
     height: 0;
 }
-.pros-list__item:nth-child(2n) .line-vertical {
-    left: 172%;
+.pros-list__item:nth-child(2n) .line-vertical, .pros-list .pin-spacer:nth-child(2n) .line-vertical {
+    left: calc(150% + 103px);
 }
 .line-horizontal {
     position: absolute;
