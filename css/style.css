@@ -143,7 +143,9 @@ body {
     margin-right: auto;
     margin-left: 0;
 }
-
+.main-section .line-vertical.right {
+    left: calc(-50% - 163px);
+}
 /* Main section *Stop* */
 
 /* Pros section *Start* */

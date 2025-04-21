@@ -197,7 +197,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     timeline.fromTo(horizLine,
         { width: 0 },
-        { width: "585px", ease: "none" },
+        { width: "645px", ease: "none" },
         2.5
     ).fromTo(vertLine,
         { height: 0 },
