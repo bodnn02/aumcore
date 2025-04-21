@@ -26,8 +26,8 @@ body {
 }
 
 .header__logo .main-section__img {
-    margin-right: 12px;
-    width: 100px;
+    margin-left: 12px;
+    width: 85px;
 }
 
 .header__logo {
@@ -123,9 +123,34 @@ body {
     height: 100%;
 }
 
+.main-section .pros-list__item {
+    display: none;
+
+    margin: 0 calc(390px - 81.59px) 0 calc(390px - 140.75px);
+    width: 100%;
+    flex-direction: row-reverse!important;
+}
+.main-section .pros-list__item-number {
+    text-align: left;
+}
+.main-section .pros-list__item-title {
+    text-align: left;
+}
+.main-section .pros-list__item-text {
+    text-align: left;
+}
+.main-section .pros-list__item-btn {
+    margin-right: auto;
+    margin-left: 0;
+}
+
 /* Main section *Stop* */
 
 /* Pros section *Start* */
+
+.pros-section {
+    margin-top: -70px;
+}
 
 .pros-section>.container {
     margin: 0 390px;
@@ -139,11 +164,11 @@ body {
 .pros-list__item {
     display: flex;
     justify-content: space-between;
-    flex-direction: row-reverse;
+    flex-direction: row;
     align-items: center;
 }
 .pros-list__item:nth-child(2n), .pros-list .pin-spacer:nth-child(2n) .pros-list__item {
-    flex-direction: row;
+    flex-direction: row-reverse;
 }
 
 .pros-list__item-icon {
@@ -180,7 +205,7 @@ body {
     font-weight: 700;
     line-height: 80px;
     letter-spacing: 0%;
-    text-align: left;
+    text-align: right;
 }
 
 .pros-list__item-text {
@@ -190,7 +215,7 @@ body {
     font-weight: 400;
     line-height: 31.13px;
     letter-spacing: 0%;
-    text-align: left;
+    text-align: right;
 }
 
 .pros-list__item-title {
@@ -200,7 +225,7 @@ body {
     font-weight: 700;
     line-height: 26.01px;
     letter-spacing: 0.63px;
-    text-align: left;
+    text-align: right;
 }
 
 .pros-list__item-title:not(:first-child) {
@@ -211,7 +236,7 @@ body {
     position: relative;
 
     padding-right: 47px;
-    margin-right: auto;
+    margin-left: auto;
 
     width: fit-content;
 
@@ -254,26 +279,26 @@ body {
 }
 
 .pros-list__item:nth-child(2n) .pros-list__item-number,  .pros-list .pin-spacer:nth-child(2n) .pros-list__item-number {
-    text-align: right;
+    text-align: left;
 }
 
 .pros-list__item:nth-child(2n) .pros-list__item-text, .pros-list .pin-spacer:nth-child(2n) .pros-list__item-text {
-    text-align: right;
+    text-align: left;
 }
 
 .pros-list__item:nth-child(2n) .pros-list__item-title, .pros-list .pin-spacer:nth-child(2n) .pros-list__item-title {
-    text-align: right;
+    text-align: left;
 }
 
 .pros-list__item:nth-child(2n) .pros-list__item-btn, .pros-list .pin-spacer:nth-child(2n) .pros-list__item-btn {
-    margin-left: auto;
-    margin-right: 0;
+    margin-right: auto;
+    margin-left: 0;
 }
 
 .diamond-placeholder {
     position: absolute;
-    top: 25%;
-    left: 25%;
+    top: 24%;
+    left: 10%;
 
     min-width: 380px;
     min-height: 380px;
@@ -294,7 +319,7 @@ body {
 .line-vertical {
     position: absolute;
     top: 100%;
-    left: calc(-50% - 103px);
+    left: calc(150% + 103px);
     width: 2px;
     /* Dotted line */
     background-image: linear-gradient(to top, #000 50%, transparent 50%);
@@ -302,8 +327,8 @@ body {
     background-repeat: repeat-y;
     height: 0;
 }
-.pros-list__item:nth-child(2n) .line-vertical, .pros-list .pin-spacer:nth-child(2n) .line-vertical {
-    left: calc(150% + 103px);
+.line-vertical.right {
+    left: calc(-50% - 103px);
 }
 .line-horizontal {
     position: absolute;
