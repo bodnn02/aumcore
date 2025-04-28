@@ -69,24 +69,44 @@ window.addEventListener("DOMContentLoaded", () => {
 
     if (!elements.img || !elements.h1 || !elements.logo || !elements.firstItem || !elements.icon || !elements.iconImg) return;
 
-    const imgClone = elements.img.cloneNode(true);
-    Object.assign(imgClone.style, {
-        position: "absolute",
-        objectFit: "contain",
-        opacity: 0,
+    const animationOverlay = document.createElement("div");
+    document.body.appendChild(animationOverlay);
+    Object.assign(animationOverlay.style, {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%",
         pointerEvents: "none",
-        display: "none"
+        zIndex: "9999"
     });
-    elements.logo.appendChild(imgClone);
+
+    const animatingImg = elements.img.cloneNode(true);
+    animationOverlay.appendChild(animatingImg);
+    
+    const imgRect = elements.img.getBoundingClientRect();
+    Object.assign(animatingImg.style, {
+        position: "absolute",
+        left: `${imgRect.left}px`,
+        top: `${imgRect.top}px`,
+        width: `${imgRect.width}px`, 
+        height: `${imgRect.height}px`,
+        objectFit: "contain"
+    });
+
+    const logoImgClone = elements.img.cloneNode(true);
+
+    logoImgClone.style.opacity = "0";
+    elements.logo.appendChild(logoImgClone);
 
     const diamond = document.createElement("div");
     diamond.classList.add("diamond-placeholder");
     elements.iconImg.style.opacity = "0";
     elements.icon.appendChild(diamond);
     Object.assign(diamond.style, {
-        transform: "scale(0.1) rotate(0deg)",
-        opacity: "0",
-        position: "absolute"
+        transform: "rotate(0deg)",
+        position: "absolute",
+        opacity: "0"
     });
 
     const timeline = gsap.timeline({
@@ -102,61 +122,62 @@ window.addEventListener("DOMContentLoaded", () => {
     // Step 1: H1 fade out
     timeline.to(elements.h1, {
         opacity: 0,
-        y: -50,
-        duration: 0.5
+        duration: 1
     }, 0);
 
-    // Step 2: Animate image to logo
-    timeline.to(elements.img, {
-        x: () => elements.logo.getBoundingClientRect().left - elements.img.getBoundingClientRect().left,
-        y: () => elements.logo.getBoundingClientRect().top - elements.img.getBoundingClientRect().top,
-        scaleX: () => elements.logo.offsetWidth / elements.img.offsetWidth,
-        scaleY: () => elements.logo.offsetHeight / elements.img.offsetHeight,
-        transformOrigin: "top left",
+    // Step 2: Animate the separate image to logo position
+    timeline.to(animatingImg, {
+        x: () => elements.logo.getBoundingClientRect().left - imgRect.left,
+        y: () => elements.logo.getBoundingClientRect().top - imgRect.top,
+        width: () => elements.logo.offsetWidth,
+        height: () => elements.logo.offsetHeight,
         duration: 1.5
     }, 0);
 
-    // Step 3: Fade in cloned image
-    timeline.to(imgClone, {
+    // Step 3: Fade out the animating image and fade in the logo image clone
+    timeline.to(animatingImg, {
+        opacity: 0,
+        duration: 0.2
+    }, 0.9);
+    
+    timeline.to(logoImgClone, {
         opacity: 1,
         duration: 0.2,
-        onStart: () => {
-            if (!elements.logo.contains(imgClone)) {
-                elements.logo.appendChild(imgClone);
-            }
-            imgClone.style.display = "block";
-        },
-        onComplete: () => clearImgCloneStyles(imgClone),
-        onReverseComplete: () => {
-            imgClone.style.display = "none";
-            imgClone.style.opacity = "0";
-            clearImgCloneStyles(imgClone);
-            if (elements.logo.contains(imgClone)) {
-                imgClone.remove();
-            }
+        onComplete: () => {
+            // Remove the specified styles when animation completes
+            logoImgClone.src = 'img/tarelka-krut-1-static.png'
+            logoImgClone.style.removeProperty("position");
+            logoImgClone.style.removeProperty("object-fit");
+            logoImgClone.style.removeProperty("pointer-events");
         }
     }, 0.9);
 
     // Step 4: Hide original image
-    timeline.set(elements.img, { opacity: 0 }, 0.9);
+    timeline.set(elements.img, { 
+        opacity: 0 
+    }, 0);
 
     // Step 5: Hide h1 and img display-wise and show pros item
-    timeline.set([elements.h1, elements.img], { display: "none" }, 1);
-    timeline.set(elements.firstItem, { display: "flex" }, 1);
+    timeline.set([elements.h1, elements.img], { 
+        display: "none" 
+    }, 0.55);
+    
+    timeline.set(elements.firstItem, { 
+        display: "flex" 
+    }, 0.55);
 
-    // Step 6: Diamond appear animation
-    timeline.to(diamond, {
-        scale: 1,
-        rotation: 0,
+    // Step 6: Diamond appear animation - now instant
+    timeline.set(diamond, {
         opacity: 1,
-        duration: 1,
-        ease: "power3.out"
-    }, 1);
+        onComplete: () => {
+            diamond.style.opacity = "1";
+        }
+    }, 0.55);
 
     // Step 7: Diamond disappear with rotate and fade, then show icon img
     timeline.to(diamond, {
-        scale: 1,
         rotation: 45,
+        borderWidth: "3px",
         opacity: 0,
         duration: 1.5,
         onComplete: () => {
@@ -165,7 +186,8 @@ window.addEventListener("DOMContentLoaded", () => {
         onReverseComplete: () => {
             elements.icon.appendChild(diamond);
             Object.assign(diamond.style, {
-                transform: "scale(0.1) rotate(0deg)",
+                transform: "rotate(0deg)",
+                borderWidth: "0.5px",
                 opacity: "0"
             });
         }
@@ -207,6 +229,18 @@ window.addEventListener("DOMContentLoaded", () => {
         },
         ">"
     );
+
+    // Clean up function for when scrolling back up
+    timeline.set({}, {
+        onReverseComplete: () => {
+            if (animationOverlay.parentNode) {
+                animationOverlay.remove();
+            }
+            if (logoImgClone.parentNode) {
+                logoImgClone.style.opacity = "0";
+            }
+        }
+    }, 0);
 });
 
 function animateDiamondLinesWithScroll() {

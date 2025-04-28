@@ -297,12 +297,12 @@ body {
 
 .diamond-placeholder {
     position: absolute;
-    top: 24%;
-    left: 10%;
+    top: 25%;
+    left: 15%;
 
-    min-width: 380px;
-    min-height: 380px;
-    border: 2px dashed #000;
+    min-width: 334px;
+    min-height: 334px;
+    border: 0.5px dashed #000;
     transform: rotate(45deg);
     margin: 0 auto;
 
