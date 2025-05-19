@@ -126,7 +126,7 @@ body {
 .main-section .pros-list__item {
     display: none;
 
-    margin: 0 calc(390px - 81.59px) 0 calc(390px - 140.75px);
+    margin: 0 0 0 calc(390px - 140.75px);
     width: 100%;
     flex-direction: row-reverse!important;
 }
@@ -165,7 +165,7 @@ body {
 
 .pros-list__item {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     flex-direction: row;
     align-items: center;
 }
@@ -183,7 +183,19 @@ body {
     justify-content: center;
     align-items: center;
 }
-
+.pros-list__item:nth-child(2n), .pros-list .pin-spacer:nth-child(2n) .pros-list__item {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+.pros-list__item:nth-child(2n) .pros-list__item-icon, .pros-list .pin-spacer:nth-child(2n) .pros-list__item .pros-list__item-icon {
+    margin-left: 250px;
+}
+.main-section .pros-list__item .pros-list__item-icon {
+    margin-left: 250px;
+}
+.pros-list .pros-list__item:first-child .pros-list__item-icon {
+    margin-right: 250px;
+}
 .pros-list__item-icon > img {
     height: 100%;
 }
@@ -379,6 +391,11 @@ body {
     }
 }
 
+@media (max-width: 1550px) {
+    .main-section .pros-list__item {
+        margin-left: 0;
+    }
+}
 
 @media (max-width: 1200px) {
     .pros-list__item-icon {
@@ -422,12 +439,24 @@ body {
     .pros-list__item-icon {
         height: 330px;
     }
+    .pros-list__item:nth-child(2n) .pros-list__item-icon, .pros-list .pin-spacer:nth-child(2n) .pros-list__item .pros-list__item-icon {
+        margin-left: auto;
+    }
+    .main-section .pros-list__item .pros-list__item-icon {
+        margin-left: auto;
+    }
+    .pros-list .pros-list__item:first-child .pros-list__item-icon {
+        margin-right: auto;
+    }
 }
 
 @media (max-width: 600px) {
     .main-section>.container {
         flex-direction: column-reverse;
         align-items: flex-start;
+    }
+    .main-section .pros-list__item {
+        flex-direction: column!important;
     }
     .pros-list__item-icon {
         height: 330px;
@@ -479,9 +508,37 @@ body {
 }
 
 @media (max-width: 400px) {
+    .main-section .main-section__h1 {
+        margin-right: 45px;
+    }
+    .main-section .main-section__img {
+        margin-right: 45px!important;
+    }
+    .main-section>.container {
+        margin-right: 0;
+    }
+    .header__logo-img {
+        width: 90px;
+    }
+    .pros-section>.container {
+        margin: 0;
+    }
+    .pros-list__item-wrapper {
+        margin-left: 0;
+        margin-right: auto;
+        max-width: 200px;
+    }
+    .pros-list .pros-list__item:first-child .pros-list__item-wrapper {
+        margin-right: 45px;
+        margin-left: auto;
+    }
+    .pros-list__item:nth-child(2n) .pros-list__item-wrapper {
+        margin-left: 45px;
+    }
     .pros-list__item-icon {
+        margin-bottom: -45px;
         height: auto;
-        width: 100%;
+        width: 70%;
     }
     .pros-list__item-icon img {
         width: 100%;

@@ -1,4 +1,3 @@
-
 gsap.registerPlugin(ScrollTrigger);
 
 function animateNumbers() {
@@ -83,13 +82,13 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const animatingImg = elements.img.cloneNode(true);
     animationOverlay.appendChild(animatingImg);
-    
+
     const imgRect = elements.img.getBoundingClientRect();
     Object.assign(animatingImg.style, {
         position: "absolute",
         left: `${imgRect.left}px`,
         top: `${imgRect.top}px`,
-        width: `${imgRect.width}px`, 
+        width: `${imgRect.width}px`,
         height: `${imgRect.height}px`,
         objectFit: "contain"
     });
@@ -139,7 +138,7 @@ window.addEventListener("DOMContentLoaded", () => {
         opacity: 0,
         duration: 0.2
     }, 0.9);
-    
+
     timeline.to(logoImgClone, {
         opacity: 1,
         duration: 0.2,
@@ -153,17 +152,17 @@ window.addEventListener("DOMContentLoaded", () => {
     }, 0.9);
 
     // Step 4: Hide original image
-    timeline.set(elements.img, { 
-        opacity: 0 
+    timeline.set(elements.img, {
+        opacity: 0
     }, 0);
 
     // Step 5: Hide h1 and img display-wise and show pros item
-    timeline.set([elements.h1, elements.img], { 
-        display: "none" 
+    timeline.set([elements.h1, elements.img], {
+        display: "none"
     }, 0.55);
-    
-    timeline.set(elements.firstItem, { 
-        display: "flex" 
+
+    timeline.set(elements.firstItem, {
+        display: "flex"
     }, 0.55);
 
     // Step 6: Diamond appear animation - now instant
@@ -182,21 +181,29 @@ window.addEventListener("DOMContentLoaded", () => {
         duration: 1.5,
         onComplete: () => {
             diamond.remove();
+            elements.firstItem.querySelector(".pros-list__item-wrapper").style.visibility = "visible";
+            animateNumbers();
         },
         onReverseComplete: () => {
+            elements.firstItem.querySelector(".pros-list__item-wrapper").style.visibility = "hidden";
             elements.icon.appendChild(diamond);
             Object.assign(diamond.style, {
                 transform: "rotate(0deg)",
                 borderWidth: "0.5px",
+                borderStyle: "dashed",
                 opacity: "0"
             });
         }
     }, 2);
 
+    timeline.add(() => {
+        diamond.style.borderStyle = "solid";
+    }, 2 + 0.45);
+
     timeline.to(elements.iconImg, {
         opacity: 1,
-        duration: 0.5
-    }, 2.5);
+        duration: 0
+    }, 3);
 
     // Step 8: Animate lines from icon
     const lineContainer = document.createElement("div");
@@ -215,12 +222,12 @@ window.addEventListener("DOMContentLoaded", () => {
         onComplete: () => {
             elements.icon.appendChild(lineContainer);
         }
-    }, 2.4);
+    }, 4.4);
 
     timeline.fromTo(horizLine,
         { width: 0 },
         { width: "645px", ease: "none" },
-        2.5
+        4.5
     ).fromTo(vertLine,
         { height: 0 },
         {
@@ -245,7 +252,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 function animateDiamondLinesWithScroll() {
     const items = document.querySelectorAll(".pros-section .pros-list__item");
-    const direction = ["left","right"];
+    const direction = ["left", "right"];
 
     document.querySelectorAll(".line-container").forEach(el => el.remove());
 
@@ -345,7 +352,7 @@ function animateDiamondLinesWithScroll() {
 }
 document.addEventListener("DOMContentLoaded", () => {
     const prosSection = document.querySelector('.pros-section');
-    
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
